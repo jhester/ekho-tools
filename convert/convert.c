@@ -19,14 +19,14 @@
 #define EKHO_N_ARRAY 6
 #define NUMPOINTS 65 // CHANGE THIS IF ABOVE CHANGED
 #define POLY_DEGREE 3 // This should change based on the harvester, need a more general method, like using splines
-#define MAX_VOLTAGE 10.5
+#define MAX_VOLTAGE 10.5	
 //#define MAX_VOLTAGE 3.28
 #define MIN_VOLTAGE 0.0
 
 /* Emulation configuration per Ekho device */
 #define REFERENCE_VOLTAGE 3.28
 #define ADC_RESOLUTION 4096
-#define EMULATION_RESISTANCE 467.6
+#define EMULATION_RESISTANCE 477.8
 //#define DAC_DIVISION 1.0
 #define DAC_DIVISION 3.2
 //#define DAC_DIVISION 10.0 // for TESTING, HACk
@@ -459,9 +459,9 @@ int main(int argc, char **argv) {
 					// IH = currentcurve[i]
 					// This is the amplified voltage
 					double dacValueV = VOLTAGES[i] + (EMULATION_RESISTANCE * currentcurve[i]);
-
+					
 					// The actual voltage played out pre-amplification
-					dacValueV = dacValueV / DAC_DIVISION;
+					dacValueV = (dacValueV / DAC_DIVISION);
 
 					// Now convert dac voltage to 12-bit digital 
 					uint16_t dacvalue_final = (uint16_t)(dacValueV /  (REFERENCE_VOLTAGE / ((double) ADC_RESOLUTION)));
@@ -471,6 +471,7 @@ int main(int argc, char **argv) {
 				  	if(i < NUMPOINTS-1) fprintf(ekho_out, ",");
 
 				}
+				
 				fprintf(ekho_out, "\n");	
 			}
 			if(output_gnu) {

@@ -12,7 +12,7 @@
 
 
 #ifdef MOBILE_EKHO_V2
-#define CS_GAIN 200
+#define CS_GAIN 100
 #define VS_GAIN 4
 #endif
 
