@@ -49,18 +49,8 @@ void reset_digpot() {
   set_rdac(AD5282_RDAC2, 255);
 }
 
-void setPot(int level) {
-  digitalWrite(CS_PIN, LOW);
-  SPI.transfer(0);
-  SPI.transfer(level);
-  digitalWrite(CS_PIN, HIGH);
-}
-
-
 void setup() {
   Serial.begin(115200);
-  SPI.begin();
-  pinMode(CS_PIN, OUTPUT);
   
   pinMode(STAT_PIN, OUTPUT);
   digitalWrite(STAT_PIN, LOW);
