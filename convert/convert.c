@@ -26,7 +26,7 @@
 /* Emulation configuration per Ekho device */
 #define REFERENCE_VOLTAGE 3.28
 #define ADC_RESOLUTION 4096
-#define EMULATION_RESISTANCE 477.8
+#define EMULATION_RESISTANCE (480)
 //#define DAC_DIVISION 1.0
 #define DAC_DIVISION 3.2
 //#define DAC_DIVISION 10.0 // for TESTING, HACk
@@ -425,7 +425,7 @@ int main(int argc, char **argv) {
 	/* Start converting the surface a line at a time  */
 	while (1) {
 		n=fscanf(infile, "%lf	%lf	%lf\n", &curvedata[0][points], &curvedata[1][points], &timestamp);
-		
+		//curvedata[0][points] = curvedata[0][points] / 2;
 		// End if no more data
 		if(n <=0) break;
 
@@ -453,7 +453,9 @@ int main(int argc, char **argv) {
 				// Timestamp first
 				fprintf(ekho_out, "%.9lf,", timestamp);	
 				// Get DAC values for newest curve to play out
-				for(int i =0;i<NUMPOINTS;i++) {
+				int i;
+				uint16_t last_dac_value = 0;
+				for(i =0;i<NUMPOINTS;i++) {
 					// Convert to dac voltage value Vplay= Vcap + IH * (Rc + Rs)
 					// (Rc + Rs) = 470Ω
 					// IH = currentcurve[i]
@@ -461,15 +463,26 @@ int main(int argc, char **argv) {
 					double dacValueV = VOLTAGES[i] + (EMULATION_RESISTANCE * currentcurve[i]);
 					
 					// The actual voltage played out pre-amplification
-					dacValueV = (dacValueV / DAC_DIVISION);
+					//dacValueV = (dacValueV / DAC_DIVISION);
+					dacValueV = (dacValueV * 0.2804243549 + 0.1559691655) / 1.6;// / DAC_DIVISION;
+					//dacValueV = dacValueV / 10.0;
 
 					// Now convert dac voltage to 12-bit digital 
-					uint16_t dacvalue_final = (uint16_t)(dacValueV /  (REFERENCE_VOLTAGE / ((double) ADC_RESOLUTION)));
+					uint16_t dacvalue_final = round(dacValueV /  (REFERENCE_VOLTAGE / ((double) ADC_RESOLUTION)));
 					dacvalue_final = (dacvalue_final > 4095) ? 4095 : dacvalue_final;
 
 				  	fprintf(ekho_out, "%d", dacvalue_final);	
 				  	if(i < NUMPOINTS-1) fprintf(ekho_out, ",");
-
+				  	else break;
+				  	if(currentcurve[i] < 0.000001) {
+				  		last_dac_value = dacvalue_final;
+						break;	
+					}
+				}
+				i++;
+				for (; i < NUMPOINTS; ++i) {
+					fprintf(ekho_out, "%d", last_dac_value);
+					if(i < NUMPOINTS-1) fprintf(ekho_out, ",");
 				}
 				
 				fprintf(ekho_out, "\n");	

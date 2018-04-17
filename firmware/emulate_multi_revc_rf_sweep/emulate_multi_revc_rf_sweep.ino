@@ -11,6 +11,7 @@
 #define DATA_POINTS_N 65
 
 #define NUM_CURVES 7
+#define SWEEP_SPEED 1000
 
 #define DAC_PIN A22
 #define VS_ADC_PIN A1
@@ -25,7 +26,11 @@ uint16_t * current_curve;
 uint8_t curve_index = 0;
 uint8_t pin_state = 0;
 
-
+/*
+ * This array has NUM_CURVES IV curves that are cycled through 
+ * The recorded IV surface is basically a RFID sweep, I recorded the reader going back and forth about 10cm away from Wisp harvester. You can edit SWEEP_SPEED
+ * to get a different time.
+ */
 uint16_t default_curve[NUM_CURVES][DATA_POINTS_N] = {125,160,194,230,266,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,301,
 230,259,288,317,346,375,403,433,462,491,519,546,573,598,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,624,
 148,184,219,255,291,326,362,397,433,469,504,540,576,611,647,683,718,754,790,825,860,895,929,963,996,1029,1062,1094,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,1127,
@@ -91,12 +96,20 @@ void setup() {
 }
 
 void loop() {
-   //digitalWrite(STAT_PIN, LOW);
+   /**
+    * BEGIN EKHO LOOP:
+    * THis code reads the voltage extremely fast and updates it based on the stored IV curves
+    */
    for(i=0;i<1000;i++) {
     voltage = adc->analogRead(VS_ADC_PIN, ADC_0);
     analogWrite(DAC_PIN, interpolate_f(voltage, 6) );
    }
-   if(timeElapsed > 1000) { 
+   /**
+    * END EKHO LOOP
+    */
+
+    // This is to change the IV curve, edit here to make different types of IV surfaces.
+   if(timeElapsed > SWEEP_SPEED) { 
     timeElapsed = 0;
     uint8_t next_curve = (curve_index++) % NUM_CURVES;
     current_curve = default_curve[next_curve];
